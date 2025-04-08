@@ -15,19 +15,6 @@ const transportIcons: { [key: string]: string } = {
   plane: '✈️'
 };
 
-// Fix for default marker icon in React Leaflet
-useEffect(() => {
-  // This is needed because the default icon paths are broken in react-leaflet
-  const L = require('leaflet');
-  delete L.Icon.Default.prototype._getIconUrl;
-  
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  });
-}, []);
-
 interface MapCenterProps {
   center: [number, number];
   zoom: number;
@@ -80,15 +67,17 @@ const ItineraryMap: React.FC<ItineraryMapProps> = ({
 
   return (
     <div className={`w-full ${className}`} style={{ height }}>
-      <MapContainer
-        center={mapCenter}
-        zoom={zoom}
-        scrollWheelZoom={false}
+      <MapContainer 
+        style={{ height: '100%', width: '100%' }}
+        center={mapCenter} 
+        zoom={zoom} 
+        scrollWheelZoom={false} 
         className="h-full w-full rounded-md shadow-md"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
         />
         
         <MapCenter center={mapCenter} zoom={zoom} />
@@ -114,14 +103,13 @@ const ItineraryMap: React.FC<ItineraryMapProps> = ({
           <React.Fragment key={route.id}>
             <Polyline 
               positions={[route.from, route.to]} 
-              color={
-                route.type === 'plane' ? '#ea4335' :
-                route.type === 'train' ? '#4285f4' :
-                route.type === 'car' ? '#fbbc05' :
-                '#34a853'
-              } 
-              weight={3}
-              dashArray={route.type === 'plane' ? '5, 10' : route.type === 'train' ? '1, 5' : ''}
+              pathOptions={{
+                color: route.type === 'plane' ? '#ea4335' :
+                        route.type === 'train' ? '#4285f4' :
+                        route.type === 'car' ? '#fbbc05' : '#34a853',
+                weight: 3,
+                dashArray: route.type === 'plane' ? '5, 10' : route.type === 'train' ? '1, 5' : ''
+              }}
             />
           </React.Fragment>
         ))}
