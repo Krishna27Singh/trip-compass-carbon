@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for our travel app
+				travel: {
+					'blue': '#1a73e8',
+					'light-blue': '#4285f4',
+					'green': '#34a853',
+					'light-green': '#5cbb7a',
+					'yellow': '#fbbc05',
+					'red': '#ea4335',
+				},
+				carbon: {
+					'low': '#34a853',
+					'medium': '#fbbc05',
+					'high': '#ea4335',
 				}
 			},
 			borderRadius: {
@@ -84,11 +99,20 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'pulse-green': {
+					'0%, 100%': { 
+						backgroundColor: 'rgba(52, 168, 83, 0.1)' 
+					},
+					'50%': { 
+						backgroundColor: 'rgba(52, 168, 83, 0.3)' 
+					},
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-green': 'pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 			}
 		}
 	},
