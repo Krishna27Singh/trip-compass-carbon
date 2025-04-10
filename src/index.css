@@ -93,7 +93,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
   }
   
   /* Add teal accents to buttons */
@@ -109,6 +109,20 @@
   
   [role="tab"][data-state="active"] {
     @apply bg-teal-600 text-white;
+  }
+  
+  /* Add subtle animations */
+  .card {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  /* Improved input and form elements */
+  input, select, textarea {
+    @apply focus:ring-teal-400 focus:border-teal-400;
   }
 }
 
@@ -138,4 +152,43 @@
 
 .btn-teal {
   @apply bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded transition-colors;
+}
+
+/* Add new animations */
+@keyframes pulse-green {
+  0%, 100% { 
+    background-color: rgba(20, 184, 166, 0.1); /* teal-500 with opacity */
+  }
+  50% { 
+    background-color: rgba(20, 184, 166, 0.3); /* teal-500 with opacity */
+  }
+}
+
+.animate-pulse-green {
+  animation: pulse-green 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-md hover:border-teal-200;
+}
+
+/* Improve dialog appearance */
+.dialog-content {
+  @apply border-teal-100 shadow-lg;
+}
+
+/* Create clean activity layouts */
+.activity-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+/* Better spacing for itinerary items */
+.itinerary-item {
+  @apply p-4 border-b border-teal-100 last:border-0;
+}
+
+/* Improved iconography */
+.icon-wrapper {
+  @apply flex items-center justify-center h-8 w-8 rounded-full bg-teal-100 text-teal-600;
 }

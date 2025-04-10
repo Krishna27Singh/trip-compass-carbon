@@ -76,8 +76,7 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
         className="rounded-md"
-        // We no longer pass center and zoom props directly to MapContainer as they're not part of its types
-        // Instead, we use the default values and update via MapUpdater component
+        // Fixed: We no longer pass center and zoom props directly to MapContainer
         zoom={2}
         center={[0, 0]}
       >

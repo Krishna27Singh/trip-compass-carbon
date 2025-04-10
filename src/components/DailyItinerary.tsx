@@ -5,7 +5,7 @@ import { useItinerary } from '@/contexts/ItineraryContext';
 import { Day, Activity } from '@/types/itinerary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, CloudSun } from 'lucide-react';
+import { Plus, CloudSun, Calendar } from 'lucide-react';
 import ActivityItem from './ActivityItem';
 import { WeatherForecast, getWeatherForecast } from '@/services/api';
 
@@ -59,7 +59,7 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
   // Render weather information
   const renderWeather = () => {
     if (isWeatherLoading) {
-      return <div className="text-sm text-gray-500">Loading weather...</div>;
+      return <div className="text-sm text-gray-500 animate-pulse">Loading weather...</div>;
     }
     
     if (!weather) {
@@ -80,20 +80,23 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
     };
     
     return (
-      <div className="flex items-center text-sm bg-teal-50 text-teal-700 px-2 py-1 rounded-md">
-        <span className="mr-1">{weatherIcons[weather.condition] || '🌡️'}</span>
+      <div className="flex items-center text-sm bg-teal-50 text-teal-700 px-3 py-1.5 rounded-md">
+        <span className="mr-2 text-lg">{weatherIcons[weather.condition] || '🌡️'}</span>
         <span>{weather.temperature}°C, {weather.condition}</span>
       </div>
     );
   };
   
   return (
-    <Card className="mb-6 border-teal-100 shadow-sm">
-      <CardHeader className="pb-2 bg-teal-50">
+    <Card className="mb-6 border-teal-100 shadow-md hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3 bg-gradient-to-r from-teal-100 to-teal-50">
         <div className="flex justify-between items-center">
-          <div>
-            <CardTitle className="text-teal-700">{formattedDate.dayOfWeek}</CardTitle>
-            <p className="text-sm text-teal-600">{formattedDate.fullDate}</p>
+          <div className="flex items-center">
+            <Calendar className="h-5 w-5 mr-2 text-teal-700" />
+            <div>
+              <CardTitle className="text-teal-700 text-xl">{formattedDate.dayOfWeek}</CardTitle>
+              <p className="text-sm text-teal-600">{formattedDate.fullDate}</p>
+            </div>
           </div>
           {renderWeather()}
         </div>
@@ -101,7 +104,7 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
       
       <CardContent className="pt-4">
         {day.activities.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {day.activities.map((activity) => (
               <ActivityItem
                 key={activity.id}
@@ -112,14 +115,14 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-teal-50/50 rounded-lg border border-dashed border-teal-200">
+          <div className="text-center py-10 bg-teal-50/50 rounded-lg border border-dashed border-teal-200">
             <p className="text-teal-600 mb-4">No activities planned for this day yet.</p>
           </div>
         )}
         
         <Button 
           variant="outline" 
-          className="w-full mt-4 border-teal-300 text-teal-700 hover:bg-teal-50" 
+          className="w-full mt-6 border-teal-300 text-teal-700 hover:bg-teal-50 py-2.5" 
           onClick={() => onAddActivity(day.id)}
         >
           <Plus className="h-4 w-4 mr-2" />
