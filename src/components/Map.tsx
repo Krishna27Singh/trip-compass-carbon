@@ -1,12 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import { Icon } from 'leaflet';
-import { Location, Transportation } from '@/types/itinerary';
 import 'leaflet/dist/leaflet.css';
+import { Location, Transportation } from '@/types/itinerary';
 
 // Marker icons by transportation type
-const transportIcons: { [key: string]: string } = {
+const transportIcons = {
   walking: '🚶',
   bicycle: '🚲',
   car: '🚗',
@@ -15,13 +14,8 @@ const transportIcons: { [key: string]: string } = {
   plane: '✈️'
 };
 
-interface MapCenterProps {
-  center: [number, number];
-  zoom: number;
-}
-
 // Component to set map view
-const MapCenter: React.FC<MapCenterProps> = ({ center, zoom }) => {
+const MapCenter = ({ center, zoom }) => {
   const map = useMap();
   useEffect(() => {
     map.setView(center, zoom);
@@ -29,16 +23,7 @@ const MapCenter: React.FC<MapCenterProps> = ({ center, zoom }) => {
   return null;
 };
 
-interface ItineraryMapProps {
-  locations: Location[];
-  transportations?: Transportation[];
-  center?: [number, number];
-  zoom?: number;
-  height?: string;
-  className?: string;
-}
-
-const ItineraryMap: React.FC<ItineraryMapProps> = ({
+const ItineraryMap = ({
   locations,
   transportations = [],
   center,
@@ -46,7 +31,7 @@ const ItineraryMap: React.FC<ItineraryMapProps> = ({
   height = '500px',
   className = ''
 }) => {
-  const [mapCenter, setMapCenter] = useState<[number, number]>(
+  const [mapCenter, setMapCenter] = useState(
     center || (locations.length > 0 ? [locations[0].lat, locations[0].lng] : [51.505, -0.09])
   );
 
@@ -60,8 +45,8 @@ const ItineraryMap: React.FC<ItineraryMapProps> = ({
   // Generate routes for transportations
   const routes = transportations.map(transport => ({
     id: transport.id,
-    from: [transport.from.lat, transport.from.lng] as [number, number],
-    to: [transport.to.lat, transport.to.lng] as [number, number],
+    from: [transport.from.lat, transport.from.lng],
+    to: [transport.to.lat, transport.to.lng],
     type: transport.type
   }));
 
