@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { format, addDays, differenceInDays } from 'date-fns';
-import { Calendar, Clock, MapPin, Plus, Trash2, FilePlus, Save, AlertTriangle } from 'lucide-react';
+import { Calendar, Clock, MapPin, Plus, Trash2, FilePlus, Save, AlertTriangle, Leaf } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import ItineraryMap from './Map';
 import ActivityCard from './ActivityCard';
