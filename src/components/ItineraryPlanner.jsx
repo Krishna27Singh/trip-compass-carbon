@@ -14,6 +14,7 @@ import DailyItinerary from './DailyItinerary';
 import ItineraryMap from './Map';
 import ItinerarySummary from './ItinerarySummary';
 import TripForm from './TripForm';
+import amadeusAPI from '../services/amadeusAPI';
 
 const ItineraryPlanner = () => {
   const [currentItinerary, setCurrentItinerary] = useState(null);
@@ -69,14 +70,64 @@ const ItineraryPlanner = () => {
     }
   }, [currentItinerary]);
   
-  // Mock function to get activities for a destination
+  // Fetch activities from real API or fall back to mock data
   const getActivitiesForDestination = async (destination) => {
-    // This would be a real API call in a production app
     setIsLoading(true);
-    
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    try {
+      // First try to get real activities from Amadeus API
+      if (destination && destination.lat && destination.lng) {
+        const activitiesFromAPI = await amadeusAPI.getActivitiesByLocation(destination.lat, destination.lng);
+        
+        if (activitiesFromAPI && activitiesFromAPI.length > 0) {
+          // Transform API data to match our application format
+          const formattedActivities = activitiesFromAPI.map(activity => {
+            return {
+              id: activity.id || uuidv4(),
+              title: activity.name || "Unnamed Activity",
+              type: getActivityTypeFromName(activity.name || ""),
+              location: {
+                name: activity.name || "Unknown Location",
+                lat: activity.geoCode?.latitude || destination.lat,
+                lng: activity.geoCode?.longitude || destination.lng
+              },
+              startTime: "10:00",
+              endTime: "12:00",
+              description: activity.description || "",
+              cost: activity.price?.amount ? parseFloat(activity.price.amount) : 0,
+              currencyCode: activity.price?.currencyCode || "USD",
+              pictures: activity.pictures || []
+            };
+          });
+          
+          setIsLoading(false);
+          return formattedActivities;
+        }
+      }
+      
+      // Fallback to mock data if API returns no results
+      return getMockActivities();
+    } catch (error) {
+      console.error('Error fetching activities:', error);
+      setIsLoading(false);
+      return getMockActivities();
+    }
+  };
+  
+  // Helper function to guess activity type from name
+  const getActivityTypeFromName = (name) => {
+    name = name.toLowerCase();
+    if (name.includes('museum') || name.includes('gallery')) return 'museum';
+    if (name.includes('park') || name.includes('garden') || name.includes('hiking')) return 'outdoors';
+    if (name.includes('restaurant') || name.includes('food') || name.includes('dinner') || name.includes('lunch')) return 'dining';
+    if (name.includes('shop') || name.includes('market') || name.includes('store')) return 'shopping';
+    if (name.includes('show') || name.includes('theater') || name.includes('cinema')) return 'entertainment';
+    if (name.includes('spa') || name.includes('massage') || name.includes('relax')) return 'relaxation';
+    // Default to sightseeing
+    return 'sightseeing';
+  };
+  
+  // Mock activities if API fails
+  const getMockActivities = () => {
     const mockActivities = [
       {
         id: uuidv4(),
@@ -135,6 +186,7 @@ const ItineraryPlanner = () => {
           setSuggestedActivities(activities);
         } catch (error) {
           console.error('Error fetching suggested activities:', error);
+          setSuggestedActivities([]);
         }
       }
     };
@@ -452,15 +504,39 @@ const ItineraryPlanner = () => {
                       onClick={() => handleUseSuggestedActivity(activity)}
                     >
                       <div className="font-medium">{activity.title}</div>
-                      <div className="text-xs text-muted-foreground flex justify-between">
+                      <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
                         <span>{activity.type}</span>
-                        {activity.cost > 0 && (
+                        {activity.cost > 0 ? (
                           <span className="flex items-center">
                             <DollarSign className="h-3 w-3 mr-1" />
-                            {activity.cost}
+                            {activity.cost} {activity.currencyCode}
                           </span>
+                        ) : (
+                          <span className="text-muted-foreground">Price currently not available</span>
                         )}
                       </div>
+                      {activity.description ? (
+                        <div className="text-xs mt-1 line-clamp-2 text-muted-foreground">
+                          {activity.description}
+                        </div>
+                      ) : (
+                        <div className="text-xs mt-1 italic text-muted-foreground">
+                          No description available
+                        </div>
+                      )}
+                      {activity.pictures && activity.pictures.length > 0 && (
+                        <div className="mt-2 h-20 relative overflow-hidden rounded-sm">
+                          <img 
+                            src={activity.pictures[0]} 
+                            alt={activity.title}
+                            className="object-cover w-full h-full"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/placeholder.svg'; 
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -475,6 +551,7 @@ const ItineraryPlanner = () => {
             <Button 
               onClick={handleSubmitActivity}
               disabled={!activityForm.title || !activityForm.locationName}
+              className="bg-teal-600 hover:bg-teal-700"
             >
               Add Activity
             </Button>

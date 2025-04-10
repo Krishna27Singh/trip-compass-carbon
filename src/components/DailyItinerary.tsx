@@ -64,7 +64,7 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
     
     if (!weather) {
       return (
-        <Button variant="outline" size="sm" onClick={checkWeather} className="text-xs">
+        <Button variant="outline" size="sm" onClick={checkWeather} className="text-xs bg-teal-50 text-teal-700 border-teal-200 hover:bg-teal-100">
           <CloudSun className="h-3.5 w-3.5 mr-1" />
           Check Weather
         </Button>
@@ -80,7 +80,7 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
     };
     
     return (
-      <div className="flex items-center text-sm">
+      <div className="flex items-center text-sm bg-teal-50 text-teal-700 px-2 py-1 rounded-md">
         <span className="mr-1">{weatherIcons[weather.condition] || '🌡️'}</span>
         <span>{weather.temperature}°C, {weather.condition}</span>
       </div>
@@ -88,20 +88,20 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
   };
   
   return (
-    <Card className="mb-6">
-      <CardHeader className="pb-2">
+    <Card className="mb-6 border-teal-100 shadow-sm">
+      <CardHeader className="pb-2 bg-teal-50">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle>{formattedDate.dayOfWeek}</CardTitle>
-            <p className="text-sm text-muted-foreground">{formattedDate.fullDate}</p>
+            <CardTitle className="text-teal-700">{formattedDate.dayOfWeek}</CardTitle>
+            <p className="text-sm text-teal-600">{formattedDate.fullDate}</p>
           </div>
           {renderWeather()}
         </div>
       </CardHeader>
       
-      <CardContent>
+      <CardContent className="pt-4">
         {day.activities.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {day.activities.map((activity) => (
               <ActivityItem
                 key={activity.id}
@@ -112,14 +112,14 @@ const DailyItinerary: React.FC<DailyItineraryProps> = ({ day, onAddActivity }) =
             ))}
           </div>
         ) : (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">No activities planned for this day yet.</p>
+          <div className="text-center py-8 bg-teal-50/50 rounded-lg border border-dashed border-teal-200">
+            <p className="text-teal-600 mb-4">No activities planned for this day yet.</p>
           </div>
         )}
         
         <Button 
           variant="outline" 
-          className="w-full mt-4" 
+          className="w-full mt-4 border-teal-300 text-teal-700 hover:bg-teal-50" 
           onClick={() => onAddActivity(day.id)}
         >
           <Plus className="h-4 w-4 mr-2" />

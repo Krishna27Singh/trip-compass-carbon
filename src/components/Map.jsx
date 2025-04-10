@@ -1,7 +1,29 @@
 
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+// This component handles map center and zoom changes
+const MapUpdater = ({ center, zoom }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (center && center.length === 2) {
+      map.setView(center, zoom);
+    }
+  }, [map, center, zoom]);
+  
+  return null;
+};
 
 const ItineraryMap = ({ locations = [], transportations = [], height = '400px', className = '' }) => {
   const [mapCenter, setMapCenter] = useState([0, 0]);
@@ -52,14 +74,18 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
     <div style={{ height, width: '100%' }} className={className}>
       <MapContainer 
         style={{ height: '100%', width: '100%' }}
-        center={mapCenter}
-        zoom={mapZoom}
         scrollWheelZoom={false}
         className="rounded-md"
+        // We no longer pass center and zoom props directly to MapContainer as they're not part of its types
+        // Instead, we use the default values and update via MapUpdater component
+        zoom={2}
+        center={[0, 0]}
       >
+        <MapUpdater center={mapCenter} zoom={mapZoom} />
+        
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           maxZoom={19}
         />
         

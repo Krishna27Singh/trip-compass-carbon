@@ -76,6 +76,20 @@ export default {
 					'low': '#34a853',
 					'medium': '#fbbc05',
 					'high': '#ea4335',
+				},
+				// Add explicit teal colors
+				teal: {
+					'50': '#f0fdfa',
+					'100': '#ccfbf1',
+					'200': '#99f6e4',
+					'300': '#5eead4',
+					'400': '#2dd4bf',
+					'500': '#14b8a6',
+					'600': '#0d9488',
+					'700': '#0f766e',
+					'800': '#115e59',
+					'900': '#134e4a',
+					'950': '#042f2e',
 				}
 			},
 			borderRadius: {
@@ -102,10 +116,10 @@ export default {
 				},
 				'pulse-green': {
 					'0%, 100%': { 
-						backgroundColor: 'rgba(52, 168, 83, 0.1)' 
+						backgroundColor: 'rgba(20, 184, 166, 0.1)' // teal-500 with opacity
 					},
 					'50%': { 
-						backgroundColor: 'rgba(52, 168, 83, 0.3)' 
+						backgroundColor: 'rgba(20, 184, 166, 0.3)' // teal-500 with opacity
 					},
 				}
 			},
