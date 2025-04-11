@@ -63,6 +63,8 @@ export interface Day {
   id: string;
   date: string;
   activities: Activity[];
+  totalCost?: number;
+  isOverBudget?: boolean;
 }
 
 export interface Transportation {
@@ -93,6 +95,8 @@ export interface Budget {
   activities: number;
   food: number;
   misc: number;
+  dailyLimit?: number;
+  currency: string;
 }
 
 export interface TripPreferences {

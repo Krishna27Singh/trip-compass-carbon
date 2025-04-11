@@ -87,9 +87,7 @@ const ItineraryMap: React.FC<ItineraryMapProps> = ({
     <div style={{ height, width: '100%' }} className={className}>
       <MapContainer 
         style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={false}
         className="rounded-md"
-        // We use MapUpdater component to handle center and zoom
         zoom={2}
         center={[0, 0]}
       >

@@ -1,99 +1,99 @@
 
 import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Clock, MapPin, DollarSign, Leaf } from 'lucide-react';
+import { Card, CardContent } from './ui/card';
+import { MapPin, Clock, DollarSign } from 'lucide-react';
 
-const ActivityCard = ({ activity, onAddToItinerary, showAddButton = true }) => {
-  const getCarbonLabel = (footprint) => {
-    if (footprint < 5) return 'Low Carbon Impact';
-    if (footprint < 15) return 'Medium Carbon Impact';
-    return 'High Carbon Impact';
+const ActivityCard = ({ activity }) => {
+  // Format time from 24-hour to 12-hour with AM/PM
+  const formatTime = (time) => {
+    if (!time) return '';
+    
+    const [hour, minute] = time.split(':').map(Number);
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const formattedHour = hour % 12 || 12;
+    
+    return `${formattedHour}:${minute.toString().padStart(2, '0')} ${period}`;
   };
   
-  const getCarbonColor = (footprint) => {
-    if (footprint < 5) return 'text-green-600';
-    if (footprint < 15) return 'text-amber-600';
-    return 'text-red-600';
+  // Get activity type icon and color
+  const getActivityTypeStyles = (type) => {
+    switch (type) {
+      case 'sightseeing':
+        return { bg: 'bg-blue-100', text: 'text-blue-700' };
+      case 'museum':
+        return { bg: 'bg-purple-100', text: 'text-purple-700' };
+      case 'outdoors':
+        return { bg: 'bg-green-100', text: 'text-green-700' };
+      case 'dining':
+        return { bg: 'bg-orange-100', text: 'text-orange-700' };
+      case 'shopping':
+        return { bg: 'bg-pink-100', text: 'text-pink-700' };
+      case 'entertainment':
+        return { bg: 'bg-indigo-100', text: 'text-indigo-700' };
+      case 'relaxation':
+        return { bg: 'bg-teal-100', text: 'text-teal-700' };
+      case 'freeTime':
+        return { bg: 'bg-gray-100', text: 'text-gray-700' };
+      default:
+        return { bg: 'bg-gray-100', text: 'text-gray-700' };
+    }
   };
+  
+  const typeStyles = getActivityTypeStyles(activity.type);
   
   return (
-    <Card className="h-full flex flex-col">
-      <div className="h-40 overflow-hidden relative">
-        {activity.pictures && activity.pictures.length > 0 ? (
-          <img 
-            src={activity.pictures[0]} 
-            alt={activity.name} 
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400">No image available</span>
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        <div className="p-4">
+          <div className="flex justify-between items-start mb-2">
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <div className={`text-xs font-medium px-2 py-0.5 rounded-full ${typeStyles.bg} ${typeStyles.text} capitalize`}>
+                  {activity.type}
+                </div>
+                <div className="text-sm flex items-center text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5 mr-1" />
+                  <span>{formatTime(activity.startTime)} - {formatTime(activity.endTime)}</span>
+                </div>
+              </div>
+              
+              <h3 className="font-semibold text-lg mt-1">{activity.title}</h3>
+            </div>
+            
+            {activity.cost > 0 && (
+              <div className="flex items-center text-sm font-medium">
+                <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>₹{activity.cost.toLocaleString()}</span>
+              </div>
+            )}
           </div>
-        )}
-        
-        {activity.type && (
-          <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
-            {activity.type}
-          </div>
-        )}
-      </div>
-      
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base line-clamp-2">{activity.name}</CardTitle>
-      </CardHeader>
-      
-      <CardContent className="py-2 flex-grow">
-        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
-          {activity.shortDescription || activity.description || 'No description available'}
-        </p>
-        
-        <div className="space-y-1 mt-2">
+          
           {activity.location && (
-            <div className="flex items-center text-xs text-gray-500">
-              <MapPin className="h-3.5 w-3.5 mr-1" />
-              <span className="truncate">{activity.location}</span>
+            <div className="flex items-center text-sm text-muted-foreground mb-3">
+              <MapPin className="h-3.5 w-3.5 mr-1 flex-shrink-0" />
+              <span className="truncate">{activity.location.name}</span>
             </div>
           )}
           
-          {(activity.startTime && activity.endTime) && (
-            <div className="flex items-center text-xs text-gray-500">
-              <Clock className="h-3.5 w-3.5 mr-1" />
-              <span>{activity.startTime} - {activity.endTime}</span>
-            </div>
-          )}
-          
-          {activity.price && (
-            <div className="flex items-center text-xs text-gray-500">
-              <DollarSign className="h-3.5 w-3.5 mr-1" />
-              <span>
-                {typeof activity.price === 'object' 
-                  ? `${activity.price.amount} ${activity.price.currencyCode}` 
-                  : activity.price}
-              </span>
-            </div>
-          )}
-          
-          {activity.carbonFootprint !== undefined && (
-            <div className={`flex items-center text-xs ${getCarbonColor(activity.carbonFootprint)}`}>
-              <Leaf className="h-3.5 w-3.5 mr-1" />
-              <span>{getCarbonLabel(activity.carbonFootprint)}</span>
-            </div>
+          {activity.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2">{activity.description}</p>
           )}
         </div>
+        
+        {activity.pictures && activity.pictures.length > 0 && (
+          <div className="h-36 overflow-hidden">
+            <img 
+              src={activity.pictures[0]} 
+              alt={activity.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/placeholder.svg';
+              }}
+            />
+          </div>
+        )}
       </CardContent>
-      
-      {showAddButton && (
-        <CardFooter className="pt-2">
-          <Button 
-            className="w-full" 
-            size="sm"
-            onClick={() => onAddToItinerary(activity)}
-          >
-            Add to Itinerary
-          </Button>
-        </CardFooter>
-      )}
     </Card>
   );
 };
