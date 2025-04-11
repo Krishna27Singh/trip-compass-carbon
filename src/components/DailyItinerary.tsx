@@ -7,7 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, CloudSun } from 'lucide-react';
 import ActivityItem from './ActivityItem';
-import { WeatherForecast, getWeatherForecast } from '@/services/api';
+import { getWeatherForecast } from '@/services/api';
+
+interface WeatherForecast {
+  date: string;
+  condition: 'sunny' | 'cloudy' | 'rainy' | 'stormy' | 'snowy';
+  temperature: number;
+  precipitation: number;
+}
 
 interface DailyItineraryProps {
   day: Day;

@@ -3,6 +3,18 @@ import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Location, Transportation } from '@/types/itinerary';
+import L from 'leaflet';
+
+// Fix Leaflet icon issues
+// This is needed because Leaflet's default marker icons have issues with webpack
+useEffect(() => {
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+  });
+}, []);
 
 // Marker icons by transportation type
 const transportIcons = {
@@ -15,15 +27,26 @@ const transportIcons = {
 };
 
 // Component to set map view
-const MapCenter = ({ center, zoom }) => {
+const MapCenter = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, zoom);
+    if (center && zoom) {
+      map.setView(center, zoom);
+    }
   }, [center, zoom, map]);
   return null;
 };
 
-const ItineraryMap = ({
+interface ItineraryMapProps {
+  locations: Location[];
+  transportations?: Transportation[];
+  center?: [number, number];
+  zoom?: number;
+  height?: string;
+  className?: string;
+}
+
+const ItineraryMap: React.FC<ItineraryMapProps> = ({
   locations,
   transportations = [],
   center,
@@ -31,7 +54,7 @@ const ItineraryMap = ({
   height = '500px',
   className = ''
 }) => {
-  const [mapCenter, setMapCenter] = useState(
+  const [mapCenter, setMapCenter] = useState<[number, number]>(
     center || (locations.length > 0 ? [locations[0].lat, locations[0].lng] : [51.505, -0.09])
   );
 
@@ -39,30 +62,35 @@ const ItineraryMap = ({
     // If center is not provided and we have locations, use the first location
     if (!center && locations.length > 0) {
       setMapCenter([locations[0].lat, locations[0].lng]);
+    } else if (center) {
+      setMapCenter(center);
     }
   }, [center, locations]);
 
   // Generate routes for transportations
   const routes = transportations.map(transport => ({
     id: transport.id,
-    from: [transport.from.lat, transport.from.lng],
-    to: [transport.to.lat, transport.to.lng],
+    from: [transport.from.lat, transport.from.lng] as [number, number],
+    to: [transport.to.lat, transport.to.lng] as [number, number],
     type: transport.type
   }));
+
+  if (!mapCenter) {
+    return <div>Loading map...</div>;
+  }
 
   return (
     <div className={`w-full ${className}`} style={{ height }}>
       <MapContainer 
         style={{ height: '100%', width: '100%' }}
-        center={mapCenter} 
-        zoom={zoom} 
-        scrollWheelZoom={false} 
+        center={mapCenter}
+        zoom={zoom}
+        scrollWheelZoom={false}
         className="h-full w-full rounded-md shadow-md"
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
         <MapCenter center={mapCenter} zoom={zoom} />

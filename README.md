@@ -1,73 +1,111 @@
-# Welcome to your Lovable project
 
-## Project info
+# Trip Compass Carbon
 
-**URL**: https://lovable.dev/projects/40927cbf-32f6-4db8-909c-87b5600bfd45
+A travel itinerary planner with carbon footprint tracking.
 
-## How can I edit this code?
+## Project Structure
 
-There are several ways of editing your application.
+This project consists of two main parts:
 
-**Use Lovable**
+1. **Frontend** - A React application built with TypeScript, Tailwind CSS, and shadcn/ui
+2. **Backend** - An Express.js API with MongoDB database
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/40927cbf-32f6-4db8-909c-87b5600bfd45) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js (v14 or higher)
+- MongoDB (local installation or MongoDB Atlas)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation and Running
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+#### Backend
 
-Follow these steps:
+1. Navigate to the backend directory:
+```
+cd backend
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Install dependencies:
+```
+npm install
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. Create a `.env` file in the root of the backend directory with the following variables:
+```
+PORT=5000
+MONGODB_URI=mongodb://localhost:27017/trip-compass
+WEATHER_API_KEY=21a7c32090574b6ea7865606251004
+AMADEUS_API_KEY=NaPzZ7boqIGqZefBmEHmiGsdFta8HHCN
+AMADEUS_API_SECRET=qjCWakubmdMEJlKG
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+4. Seed the database:
+```
+node seed/seed.js
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+5. Start the backend server:
+```
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The backend API will be available at: http://localhost:5000
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+#### Frontend
 
-**Use GitHub Codespaces**
+1. Navigate to the frontend directory (from the project root):
+```
+cd .
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. Install dependencies:
+```
+npm install
+```
 
-## What technologies are used for this project?
+3. Start the frontend development server:
+```
+npm run dev
+```
 
-This project is built with:
+The frontend application will be available at: http://localhost:5173
 
-- Vite
-- TypeScript
+## Features
+
+- Create and manage travel itineraries
+- Track carbon footprint of activities and transportation
+- View itineraries on an interactive map
+- Check weather forecasts for your trip
+- Discover activities for popular destinations
+
+## Technologies Used
+
+### Frontend
 - React
-- shadcn-ui
+- TypeScript
+- Vite
 - Tailwind CSS
+- shadcn/ui
+- React Router
+- Leaflet (for maps)
+- Axios
 
-## How can I deploy this project?
+### Backend
+- Express.js
+- MongoDB with Mongoose
+- Weather API
+- Amadeus API for travel activities
 
-Simply open [Lovable](https://lovable.dev/projects/40927cbf-32f6-4db8-909c-87b5600bfd45) and click on Share -> Publish.
+## Deployment
 
-## Can I connect a custom domain to my Lovable project?
+For production deployment:
 
-Yes it is!
+1. Build the frontend:
+```
+npm run build
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+2. Start both the frontend and backend servers.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+3. Configure your reverse proxy (like Nginx) to route API requests to the backend server and serve the frontend static files.
