@@ -2,101 +2,127 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 import { Location, Transportation } from '@/types/itinerary';
 
-// Marker icons by transportation type
-const transportIcons = {
-  walking: '🚶',
-  bicycle: '🚲',
-  car: '🚗',
-  bus: '🚌',
-  train: '🚆',
-  plane: '✈️'
-};
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
 
-// Component to set map view
-const MapCenter = ({ center, zoom }) => {
+// This component handles map center and zoom changes
+const MapUpdater = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
   const map = useMap();
+  
   useEffect(() => {
-    map.setView(center, zoom);
-  }, [center, zoom, map]);
+    if (center && center.length === 2) {
+      map.setView(center, zoom);
+    }
+  }, [map, center, zoom]);
+  
   return null;
 };
 
-const ItineraryMap = ({
-  locations,
-  transportations = [],
-  center,
-  zoom = 12,
-  height = '500px',
-  className = ''
+interface ItineraryMapProps {
+  locations: Location[];
+  transportations?: Transportation[];
+  height?: string;
+  className?: string;
+}
+
+const ItineraryMap: React.FC<ItineraryMapProps> = ({ 
+  locations = [], 
+  transportations = [], 
+  height = '400px', 
+  className = '' 
 }) => {
-  const [mapCenter, setMapCenter] = useState(
-    center || (locations.length > 0 ? [locations[0].lat, locations[0].lng] : [51.505, -0.09])
-  );
+  const [mapCenter, setMapCenter] = useState<[number, number]>([0, 0]);
+  const [mapZoom, setMapZoom] = useState(2);
 
+  // Calculate map center based on locations
   useEffect(() => {
-    // If center is not provided and we have locations, use the first location
-    if (!center && locations.length > 0) {
-      setMapCenter([locations[0].lat, locations[0].lng]);
+    if (locations && locations.length > 0) {
+      // Find center of all markers
+      const lats = locations.map(loc => loc.lat);
+      const lngs = locations.map(loc => loc.lng);
+      
+      const avgLat = lats.reduce((a, b) => a + b, 0) / lats.length;
+      const avgLng = lngs.reduce((a, b) => a + b, 0) / lngs.length;
+      
+      setMapCenter([avgLat, avgLng]);
+      
+      // Adjust zoom level based on marker spread
+      const latRange = Math.max(...lats) - Math.min(...lats);
+      const lngRange = Math.max(...lngs) - Math.min(...lngs);
+      const maxRange = Math.max(latRange, lngRange);
+      
+      if (maxRange < 0.1) setMapZoom(13);
+      else if (maxRange < 0.5) setMapZoom(11);
+      else if (maxRange < 2) setMapZoom(9);
+      else if (maxRange < 5) setMapZoom(7);
+      else if (maxRange < 10) setMapZoom(6);
+      else setMapZoom(4);
     }
-  }, [center, locations]);
-
-  // Generate routes for transportations
-  const routes = transportations.map(transport => ({
-    id: transport.id,
-    from: [transport.from.lat, transport.from.lng],
-    to: [transport.to.lat, transport.to.lng],
-    type: transport.type
-  }));
-
+  }, [locations]);
+  
+  // Generate transportation lines
+  const transportationLines = transportations?.map(transport => {
+    if (!transport.from || !transport.to) return null;
+    
+    return {
+      positions: [
+        [transport.from.lat, transport.from.lng],
+        [transport.to.lat, transport.to.lng]
+      ],
+      color: transport.type === 'plane' ? '#FF6B6B' : 
+             transport.type === 'train' ? '#4ECDC4' : 
+             transport.type === 'bus' ? '#FFD166' : '#1A535C'
+    };
+  }).filter(line => line !== null);
+  
   return (
-    <div className={`w-full ${className}`} style={{ height }}>
+    <div style={{ height, width: '100%' }} className={className}>
       <MapContainer 
         style={{ height: '100%', width: '100%' }}
-        center={mapCenter} 
-        zoom={zoom} 
-        scrollWheelZoom={false} 
-        className="h-full w-full rounded-md shadow-md"
+        scrollWheelZoom={false}
+        className="rounded-md"
+        // We use MapUpdater component to handle center and zoom
+        zoom={2}
+        center={[0, 0]}
       >
+        <MapUpdater center={mapCenter} zoom={mapZoom} />
+        
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          maxZoom={19}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         
-        <MapCenter center={mapCenter} zoom={zoom} />
-        
-        {/* Render markers for each location */}
-        {locations.map(location => (
+        {locations?.map((location, index) => (
           <Marker 
-            key={location.id} 
+            key={location.id || index} 
             position={[location.lat, location.lng]}
           >
             <Popup>
-              <div className="text-sm">
-                <h3 className="font-bold">{location.name}</h3>
-                {location.address && <p>{location.address}</p>}
-                {location.description && <p className="mt-1">{location.description}</p>}
-              </div>
+              <div className="font-medium">{location.name}</div>
+              {location.description && <div className="text-sm mt-1">{location.description}</div>}
             </Popup>
           </Marker>
         ))}
         
-        {/* Render routes between locations */}
-        {routes.map(route => (
-          <React.Fragment key={route.id}>
-            <Polyline 
-              positions={[route.from, route.to]} 
-              pathOptions={{
-                color: route.type === 'plane' ? '#ea4335' :
-                        route.type === 'train' ? '#4285f4' :
-                        route.type === 'car' ? '#fbbc05' : '#34a853',
-                weight: 3,
-                dashArray: route.type === 'plane' ? '5, 10' : route.type === 'train' ? '1, 5' : ''
-              }}
-            />
-          </React.Fragment>
+        {transportationLines?.map((line, index) => (
+          <Polyline 
+            key={index}
+            positions={line.positions as any}
+            pathOptions={{
+              color: line.color,
+              weight: 3,
+              opacity: 0.7,
+              dashArray: "5,10"
+            }}
+          />
         ))}
       </MapContainer>
     </div>
