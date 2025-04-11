@@ -1,3 +1,4 @@
+
 const Activity = require('../models/Activity');
 const axios = require('axios');
 const Destination = require('../models/Destination');
@@ -7,9 +8,15 @@ exports.getActivitiesForDestination = async (req, res) => {
   try {
     const { destination, lat, lng, radius = 5 } = req.query;
     
+    console.log('Activity request params:', { destination, lat, lng, radius });
+    
     if (destination) {
       // Search by destination name
-      const activities = await Activity.find({ destinationName: destination });
+      const activities = await Activity.find({ 
+        destinationName: { $regex: new RegExp(destination, 'i') } 
+      });
+      
+      console.log(`Found ${activities.length} activities in database for destination: ${destination}`);
       
       // If we have activities in the database, return them
       if (activities.length > 0) {
@@ -24,10 +31,27 @@ exports.getActivitiesForDestination = async (req, res) => {
         });
         
         if (destinationDoc) {
+          console.log(`Found destination in DB: ${destinationDoc.name} at coordinates: ${destinationDoc.lat},${destinationDoc.lng}`);
           const activities = await fetchActivitiesFromAPI(destinationDoc.lat, destinationDoc.lng, radius);
+          
+          // Save activities to database for future use
+          if (activities.length > 0) {
+            try {
+              const activitiesToSave = activities.map(activity => ({
+                ...activity,
+                destinationName: destination
+              }));
+              await Activity.insertMany(activitiesToSave);
+              console.log(`Saved ${activities.length} activities to database`);
+            } catch (saveError) {
+              console.error('Error saving activities to database:', saveError);
+            }
+          }
+          
           return res.json(activities);
         }
         
+        console.log('Destination not found in database');
         return res.json([]);
       } catch (apiError) {
         console.error('Error fetching activities from API:', apiError);
@@ -36,6 +60,7 @@ exports.getActivitiesForDestination = async (req, res) => {
     } else if (lat && lng) {
       // Search by coordinates
       try {
+        console.log(`Fetching activities by coordinates: ${lat},${lng}`);
         const activities = await fetchActivitiesFromAPI(lat, lng, radius);
         return res.json(activities);
       } catch (apiError) {
@@ -55,6 +80,7 @@ exports.getActivitiesForDestination = async (req, res) => {
 async function fetchActivitiesFromAPI(lat, lng, radius) {
   try {
     // Get access token
+    console.log('Requesting Amadeus API token');
     const tokenResponse = await axios.post('https://test.api.amadeus.com/v1/security/oauth2/token', 
       `grant_type=client_credentials&client_id=${process.env.AMADEUS_API_KEY}&client_secret=${process.env.AMADEUS_API_SECRET}`,
       {
@@ -65,8 +91,10 @@ async function fetchActivitiesFromAPI(lat, lng, radius) {
     );
     
     const token = tokenResponse.data.access_token;
+    console.log('Successfully obtained Amadeus API token');
     
     // Fetch activities
+    console.log(`Fetching activities from Amadeus API at coordinates: ${lat},${lng}, radius: ${radius}`);
     const activitiesResponse = await axios.get(
       `https://test.api.amadeus.com/v1/shopping/activities?latitude=${lat}&longitude=${lng}&radius=${radius}`,
       {
@@ -77,6 +105,8 @@ async function fetchActivitiesFromAPI(lat, lng, radius) {
     );
     
     if (activitiesResponse.data && activitiesResponse.data.data) {
+      console.log(`Received ${activitiesResponse.data.data.length} activities from Amadeus API`);
+      
       // Transform to our activity model
       return activitiesResponse.data.data.map(item => ({
         id: item.id,
@@ -99,9 +129,10 @@ async function fetchActivitiesFromAPI(lat, lng, radius) {
       }));
     }
     
+    console.log('No activities data in response');
     return [];
   } catch (error) {
-    console.error('Error in fetchActivitiesFromAPI:', error);
+    console.error('Error in fetchActivitiesFromAPI:', error.response?.data || error.message);
     return [];
   }
 }

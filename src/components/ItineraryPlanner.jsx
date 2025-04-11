@@ -74,37 +74,49 @@ const ItineraryPlanner = () => {
   const getActivitiesForDestination = async (destination) => {
     setIsLoading(true);
     try {
-      // First try to get real activities from Amadeus API
-      if (destination && destination.lat && destination.lng) {
-        const activitiesFromAPI = await amadeusAPI.getActivitiesByLocation(destination.lat, destination.lng);
+      console.log('Fetching activities for destination:', destination);
+      let activitiesFromAPI = [];
+      
+      // Try to get activities by destination name first
+      if (destination && destination.name) {
+        console.log(`Fetching activities by destination name: ${destination.name}`);
+        activitiesFromAPI = await amadeusAPI.getActivitiesByDestination(destination.name);
+      }
+      
+      // If that fails or returns no results, try by coordinates
+      if ((!activitiesFromAPI || activitiesFromAPI.length === 0) && destination && destination.lat && destination.lng) {
+        console.log(`Fetching activities by coordinates: ${destination.lat}, ${destination.lng}`);
+        activitiesFromAPI = await amadeusAPI.getActivitiesByLocation(destination.lat, destination.lng);
+      }
+      
+      if (activitiesFromAPI && activitiesFromAPI.length > 0) {
+        console.log(`Got ${activitiesFromAPI.length} activities from API`);
+        // Transform API data to match our application format if needed
+        const formattedActivities = activitiesFromAPI.map(activity => {
+          return {
+            id: activity.id || uuidv4(),
+            title: activity.title || activity.name || "Unnamed Activity",
+            type: activity.type || getActivityTypeFromName(activity.title || ""),
+            location: {
+              name: activity.location?.name || "Unknown Location",
+              lat: activity.location?.lat || destination.lat,
+              lng: activity.location?.lng || destination.lng
+            },
+            startTime: activity.startTime || "10:00",
+            endTime: activity.endTime || "12:00",
+            description: activity.description || "",
+            cost: activity.cost ? parseFloat(activity.cost) : 0,
+            currencyCode: activity.currencyCode || "USD",
+            pictures: activity.pictures || []
+          };
+        });
         
-        if (activitiesFromAPI && activitiesFromAPI.length > 0) {
-          // Transform API data to match our application format
-          const formattedActivities = activitiesFromAPI.map(activity => {
-            return {
-              id: activity.id || uuidv4(),
-              title: activity.name || "Unnamed Activity",
-              type: getActivityTypeFromName(activity.name || ""),
-              location: {
-                name: activity.name || "Unknown Location",
-                lat: activity.geoCode?.latitude || destination.lat,
-                lng: activity.geoCode?.longitude || destination.lng
-              },
-              startTime: "10:00",
-              endTime: "12:00",
-              description: activity.description || "",
-              cost: activity.price?.amount ? parseFloat(activity.price.amount) : 0,
-              currencyCode: activity.price?.currencyCode || "USD",
-              pictures: activity.pictures || []
-            };
-          });
-          
-          setIsLoading(false);
-          return formattedActivities;
-        }
+        setIsLoading(false);
+        return formattedActivities;
       }
       
       // Fallback to mock data if API returns no results
+      console.log('No activities found, using mock data');
       return getMockActivities();
     } catch (error) {
       console.error('Error fetching activities:', error);
@@ -182,7 +194,9 @@ const ItineraryPlanner = () => {
     const fetchSuggestedActivities = async () => {
       if (currentItinerary && showAddActivityDialog) {
         try {
+          console.log('Fetching suggested activities for:', currentItinerary.destination);
           const activities = await getActivitiesForDestination(currentItinerary.destination);
+          console.log('Setting suggested activities:', activities);
           setSuggestedActivities(activities);
         } catch (error) {
           console.error('Error fetching suggested activities:', error);

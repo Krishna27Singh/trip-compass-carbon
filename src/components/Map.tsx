@@ -68,7 +68,7 @@ const Map: React.FC<MapProps> = ({
   return (
     <MapContainer
       style={{ height, width: "100%" }}
-      center={mapCenter}
+      center={mapCenter as LatLngExpression}
       zoom={mapZoom}
       scrollWheelZoom={false}
       className={className}
@@ -101,10 +101,7 @@ const Map: React.FC<MapProps> = ({
               [transportation.from.lat, transportation.from.lng],
               [transportation.to.lat, transportation.to.lng],
             ]}
-            color="#3B82F6"
-            weight={3}
-            opacity={0.7}
-            dashArray="5, 10"
+            pathOptions={{ color: "#3B82F6", weight: 3, opacity: 0.7, dashArray: "5, 10" }}
           />
         </React.Fragment>
       ))}
