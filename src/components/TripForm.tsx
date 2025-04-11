@@ -13,7 +13,6 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TravelPreference, TravelPace, Budget } from '@/types/itinerary';
 import { searchDestinations } from '@/services/api';
-import { toast } from '@/hooks/use-toast';
 
 const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const { createNewItinerary } = useItinerary();
@@ -28,14 +27,12 @@ const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
   const [preferences, setPreferences] = useState<TravelPreference[]>([]);
   const [pace, setPace] = useState<TravelPace>('moderate');
   const [budget, setBudget] = useState<Budget>({
-    total: 50000,
-    accommodations: 20000,
-    transportation: 15000,
-    activities: 10000,
-    food: 5000,
-    misc: 0,
-    dailyLimit: 0,
-    currency: 'INR'
+    total: 1000,
+    accommodations: 400,
+    transportation: 300,
+    activities: 200,
+    food: 100,
+    misc: 0
   });
   
   // Preferences options
@@ -82,16 +79,6 @@ const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
     }
   };
   
-  // Calculate trip duration in days
-  const calculateTripDuration = (): number => {
-    if (!startDate || !endDate) return 1;
-    
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const durationMs = end.getTime() - start.getTime();
-    return Math.ceil(durationMs / (1000 * 60 * 60 * 24)) + 1;
-  };
-  
   // Handle budget change
   const handleBudgetChange = (category: keyof Budget, value: number) => {
     const newBudget = { ...budget, [category]: value };
@@ -103,25 +90,12 @@ const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
       newBudget.food + 
       newBudget.misc;
     
-    // Calculate daily limit based on trip duration
-    const tripDuration = calculateTripDuration();
-    newBudget.dailyLimit = Math.round(newBudget.total / tripDuration);
-    
     setBudget(newBudget);
   };
   
   // Handle form submission
   const handleSubmit = () => {
     if (!startDate || !endDate || !destination) return;
-    
-    // Calculate daily budget limit
-    const tripDuration = calculateTripDuration();
-    const dailyLimit = Math.round(budget.total / tripDuration);
-    
-    const updatedBudget = {
-      ...budget,
-      dailyLimit
-    };
     
     createNewItinerary(
       title || `Trip to ${destination}`,
@@ -131,14 +105,9 @@ const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
       {
         preferences,
         pace,
-        budget: updatedBudget
+        budget
       }
     );
-    
-    toast({
-      title: "Itinerary Created",
-      description: `Your itinerary has been created with a daily budget limit of ₹${dailyLimit.toLocaleString()}.`,
-    });
     
     onComplete();
   };
@@ -343,33 +312,29 @@ const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
         );
         
       case 3:
-        const tripDuration = calculateTripDuration();
-        const dailyBudget = Math.round(budget.total / tripDuration);
-        
         return (
           <>
             <CardHeader>
               <CardTitle>Budget Planning</CardTitle>
               <CardDescription>
                 Set your budget for the trip to help us suggest appropriate activities.
-                Your trip is {tripDuration} days long, which gives you about ₹{dailyBudget.toLocaleString()} per day.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <Label htmlFor="total">Total Budget (₹)</Label>
-                  <span className="text-lg font-medium">₹{budget.total.toLocaleString()}</span>
+                  <Label htmlFor="total">Total Budget</Label>
+                  <span className="text-lg font-medium">${budget.total}</span>
                 </div>
                 <div>
                   {Object.entries(budget).map(([category, value]) => (
-                    category !== 'total' && category !== 'currency' && category !== 'dailyLimit' && (
+                    category !== 'total' && (
                       <div key={category} className="mb-4">
                         <div className="flex justify-between mb-1">
                           <Label htmlFor={category} className="capitalize">
                             {category}
                           </Label>
-                          <span>₹{value.toLocaleString()}</span>
+                          <span>${value}</span>
                         </div>
                         <Input
                           id={category}
@@ -383,19 +348,6 @@ const TripForm: React.FC<{ onComplete: () => void }> = ({ onComplete }) => {
                       </div>
                     )
                   ))}
-                </div>
-                
-                <div className="p-4 bg-primary/10 rounded-md border border-primary/20">
-                  <div className="text-sm font-medium mb-2">Budget Breakdown:</div>
-                  <div className="grid grid-cols-2 gap-y-2 text-sm">
-                    <div>Daily Budget:</div>
-                    <div className="font-medium">₹{dailyBudget.toLocaleString()}</div>
-                    <div>Trip Duration:</div>
-                    <div className="font-medium">{tripDuration} days</div>
-                  </div>
-                  <div className="text-xs mt-2 text-muted-foreground">
-                    You'll receive a warning if daily activities exceed your budget.
-                  </div>
                 </div>
               </div>
             </CardContent>

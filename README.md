@@ -1,117 +1,73 @@
+# Welcome to your Lovable project
 
-# WanderWise Travel Planner
+## Project info
 
-WanderWise is a comprehensive travel planning application that helps users create detailed itineraries, track activities, and monitor their budget.
+**URL**: https://lovable.dev/projects/40927cbf-32f6-4db8-909c-87b5600bfd45
 
-## Features
+## How can I edit this code?
 
-- Create detailed travel itineraries with daily activities
-- Budget planning and tracking in Indian Rupees (₹)
-- Budget alerts when daily spending exceeds your limit
-- Interactive map view of your travel locations
-- Activity suggestions based on your destination
-- Carbon footprint tracking for eco-conscious travelers
+There are several ways of editing your application.
 
-## Tech Stack
+**Use Lovable**
 
-### Frontend:
-- React
+Simply visit the [Lovable Project](https://lovable.dev/projects/40927cbf-32f6-4db8-909c-87b5600bfd45) and start prompting.
+
+Changes made via Lovable will be committed automatically to this repo.
+
+**Use your preferred IDE**
+
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+
+Follow these steps:
+
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
+
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
+
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
+
+**Edit a file directly in GitHub**
+
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
+
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with:
+
+- Vite
 - TypeScript
+- React
+- shadcn-ui
 - Tailwind CSS
-- Leaflet for maps
-- Shadcn UI components
 
-### Backend:
-- Express.js
-- MongoDB with Mongoose
-- RESTful API architecture
+## How can I deploy this project?
 
-## Running the Application
+Simply open [Lovable](https://lovable.dev/projects/40927cbf-32f6-4db8-909c-87b5600bfd45) and click on Share -> Publish.
 
-### Prerequisites
-- Node.js and npm
-- MongoDB (local or Atlas connection)
+## Can I connect a custom domain to my Lovable project?
 
-### Setup & Installation
+Yes it is!
 
-1. **Clone the repository**
+To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-```bash
-git clone <repository-url>
-cd wanderwise
-```
-
-2. **Install frontend dependencies**
-
-```bash
-npm install
-```
-
-3. **Install backend dependencies**
-
-```bash
-cd backend
-npm install
-```
-
-4. **Start MongoDB** (if using local MongoDB)
-
-Make sure MongoDB is running on your system.
-
-5. **Start the backend server**
-
-```bash
-# From the backend directory
-npm start
-```
-
-This will start the backend server on http://localhost:5000.
-
-6. **Start the frontend development server**
-
-```bash
-# From the root directory
-npm start
-```
-
-This will start the frontend on http://localhost:3000.
-
-7. **Seed the database with initial data (optional)**
-
-```bash
-# From the backend directory
-npm run seed
-```
-
-Or you can use the API endpoint:
-
-```
-POST /api/destinations/seed
-```
-
-## API Endpoints
-
-### Destinations
-- `GET /api/destinations` - Get all destinations
-- `GET /api/destinations/search?query=<query>` - Search destinations
-- `GET /api/destinations/:id` - Get destination by ID
-- `POST /api/destinations` - Create new destination
-- `POST /api/destinations/seed` - Seed initial destinations
-
-### Activities
-- `GET /api/activities/destination/:destinationId` - Get activities for a destination
-- `GET /api/activities/location?lat=<lat>&lng=<lng>` - Get activities by location coordinates
-- `POST /api/activities` - Create new activity
-
-### Itineraries
-- `GET /api/itineraries` - Get all itineraries
-- `GET /api/itineraries/:id` - Get itinerary by ID
-- `POST /api/itineraries` - Create new itinerary
-- `PUT /api/itineraries/:id` - Update itinerary
-- `DELETE /api/itineraries/:id` - Delete itinerary
-- `POST /api/itineraries/:itineraryId/days/:dayId/activities` - Add activity to a day
-- `DELETE /api/itineraries/:itineraryId/days/:dayId/activities/:activityId` - Remove activity from a day
-- `POST /api/itineraries/:id/calculate-footprint` - Calculate carbon footprint
-
-### Weather
-- `GET /api/weather/forecast?lat=<lat>&lng=<lng>&days=<days>` - Get weather forecast
+Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)

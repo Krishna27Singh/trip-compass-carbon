@@ -57,18 +57,14 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
   
   // Generate transportation lines
   const transportationLines = transportations?.map(transport => {
-    // Handle both original and updated transportation structure
-    const origin = transport.origin || transport.from;
-    const destination = transport.destination || transport.to;
-    
-    if (!origin || !destination) return null;
+    if (!transport.origin || !transport.destination) return null;
     
     return {
       positions: [
-        [origin.lat, origin.lng],
-        [destination.lat, destination.lng]
+        [transport.origin.lat, transport.origin.lng],
+        [transport.destination.lat, transport.destination.lng]
       ],
-      color: transport.type === 'flight' || transport.type === 'plane' ? '#FF6B6B' : 
+      color: transport.type === 'flight' ? '#FF6B6B' : 
              transport.type === 'train' ? '#4ECDC4' : 
              transport.type === 'bus' ? '#FFD166' : '#1A535C'
     };
@@ -80,7 +76,8 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
         style={{ height: '100%', width: '100%' }}
         scrollWheelZoom={false}
         className="rounded-md"
-        // We use default values and update via MapUpdater component
+        // We no longer pass center and zoom props directly to MapContainer as they're not part of its types
+        // Instead, we use the default values and update via MapUpdater component
         zoom={2}
         center={[0, 0]}
       >
@@ -89,6 +86,7 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          maxZoom={19}
         />
         
         {locations?.map((location, index) => (
@@ -98,7 +96,6 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
           >
             <Popup>
               <div className="font-medium">{location.name}</div>
-              {location.description && <div className="text-sm mt-1">{location.description}</div>}
             </Popup>
           </Marker>
         ))}
@@ -107,12 +104,10 @@ const ItineraryMap = ({ locations = [], transportations = [], height = '400px', 
           <Polyline 
             key={index}
             positions={line.positions}
-            pathOptions={{
-              color: line.color,
-              weight: 3,
-              opacity: 0.7,
-              dashArray: "5,10"
-            }}
+            color={line.color}
+            weight={3}
+            opacity={0.7}
+            dashArray="5,10"
           />
         ))}
       </MapContainer>
