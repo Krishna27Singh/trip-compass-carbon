@@ -1,6 +1,6 @@
 
-// Mock database service (in a real app, this would be a backend API)
-// For this demo, we'll use localStorage to simulate a database
+// Local database service
+// Uses localStorage for client-side data that doesn't need to be persisted to the backend
 const databaseAPI = {
   // Save itinerary to localStorage
   saveItinerary: function(itinerary) {

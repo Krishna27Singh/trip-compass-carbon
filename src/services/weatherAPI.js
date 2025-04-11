@@ -1,12 +1,10 @@
 
-// Weather API Service
+// Weather API Service that communicates with our backend
 const weatherAPI = {
-  apiKey: '21a7c32090574b6ea7865606251004',
-  
   getWeatherForecast: async function(latitude, longitude, days = 7) {
     try {
       const response = await fetch(
-        `https://api.weatherapi.com/v1/forecast.json?key=${this.apiKey}&q=${latitude},${longitude}&days=${days}&aqi=no&alerts=no`
+        `http://localhost:5000/api/weather?lat=${latitude}&lng=${longitude}&days=${days}`
       );
       
       if (!response.ok) {
@@ -24,20 +22,15 @@ const weatherAPI = {
   // Get weather conditions for a specific date
   getWeatherForDate: async function(latitude, longitude, date) {
     try {
-      // Get forecast for the next 7 days
-      const forecast = await this.getWeatherForecast(latitude, longitude);
-      
-      if (!forecast || !forecast.forecast || !forecast.forecast.forecastday) {
-        return null;
-      }
-      
-      // Find the day that matches our target date
-      const targetDate = date.substring(0, 10); // Format as YYYY-MM-DD
-      const matchingDay = forecast.forecast.forecastday.find(
-        day => day.date === targetDate
+      const response = await fetch(
+        `http://localhost:5000/api/weather?lat=${latitude}&lng=${longitude}&date=${date}`
       );
       
-      return matchingDay || null;
+      if (!response.ok) {
+        throw new Error('Weather API returned an error');
+      }
+      
+      return await response.json();
     } catch (error) {
       console.error('Error getting weather for date:', error);
       return null;

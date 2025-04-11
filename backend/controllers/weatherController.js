@@ -4,7 +4,7 @@ const axios = require('axios');
 // Get weather forecast for location and date
 exports.getWeatherForecast = async (req, res) => {
   try {
-    const { lat, lng, date } = req.query;
+    const { lat, lng, date, days = 7 } = req.query;
     
     if (!lat || !lng) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
@@ -13,7 +13,7 @@ exports.getWeatherForecast = async (req, res) => {
     // Use Weather API to get forecast
     try {
       const response = await axios.get(
-        `https://api.weatherapi.com/v1/forecast.json?key=${process.env.WEATHER_API_KEY}&q=${lat},${lng}&days=7&aqi=no&alerts=no`
+        `https://api.weatherapi.com/v1/forecast.json?key=${process.env.WEATHER_API_KEY}&q=${lat},${lng}&days=${days}&aqi=no&alerts=no`
       );
       
       // Find the forecast that matches our target date or use current

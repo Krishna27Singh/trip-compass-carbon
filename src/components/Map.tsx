@@ -1,134 +1,115 @@
 
-import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { Location, Transportation } from '@/types/itinerary';
-import L from 'leaflet';
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { LatLngExpression } from "leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { Activity, Location, Transportation } from "@/types/itinerary";
 
-// Fix Leaflet icon issues
-// This is needed because Leaflet's default marker icons have issues with webpack
-useEffect(() => {
-  delete L.Icon.Default.prototype._getIconUrl;
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-  });
-}, []);
+// Fix Leaflet icon issue
+// This is needed because of how Leaflet handles icons in modern JS bundlers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "/marker-icon-2x.png",
+  iconUrl: "/marker-icon.png",
+  shadowUrl: "/marker-shadow.png",
+});
 
-// Marker icons by transportation type
-const transportIcons = {
-  walking: '🚶',
-  bicycle: '🚲',
-  car: '🚗',
-  bus: '🚌',
-  train: '🚆',
-  plane: '✈️'
-};
+// Custom marker icons
+const activityIcon = new L.Icon({
+  iconUrl: "/activity-marker.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
 
-// Component to set map view
-const MapCenter = ({ center, zoom }: { center: [number, number]; zoom: number }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (center && zoom) {
-      map.setView(center, zoom);
-    }
-  }, [center, zoom, map]);
-  return null;
-};
-
-interface ItineraryMapProps {
-  locations: Location[];
-  transportations?: Transportation[];
-  center?: [number, number];
+interface MapProps {
+  locations: any;
+  transportations?: any[];
+  center?: LatLngExpression;
   zoom?: number;
   height?: string;
   className?: string;
 }
 
-const ItineraryMap: React.FC<ItineraryMapProps> = ({
+const Map: React.FC<MapProps> = ({
   locations,
   transportations = [],
   center,
   zoom = 12,
-  height = '500px',
-  className = ''
+  height = "400px",
+  className = "",
 }) => {
-  const [mapCenter, setMapCenter] = useState<[number, number]>(
-    center || (locations.length > 0 ? [locations[0].lat, locations[0].lng] : [51.505, -0.09])
-  );
+  const [mapCenter, setMapCenter] = useState<LatLngExpression>([51.505, -0.09]);
+  const [mapZoom, setMapZoom] = useState<number>(zoom);
 
+  // Calculate center based on locations
   useEffect(() => {
-    // If center is not provided and we have locations, use the first location
-    if (!center && locations.length > 0) {
-      setMapCenter([locations[0].lat, locations[0].lng]);
-    } else if (center) {
+    if (center) {
       setMapCenter(center);
+    } else if (locations && locations.length > 0) {
+      // If no center is provided, calculate the average of all locations
+      const sumLat = locations.reduce((sum: number, loc: Location) => sum + loc.lat, 0);
+      const sumLng = locations.reduce((sum: number, loc: Location) => sum + loc.lng, 0);
+      
+      setMapCenter([sumLat / locations.length, sumLng / locations.length]);
+      
+      // Adjust zoom based on number of locations
+      if (locations.length === 1) {
+        setMapZoom(14);
+      } else if (locations.length > 5) {
+        setMapZoom(10);
+      } else {
+        setMapZoom(12);
+      }
     }
-  }, [center, locations]);
-
-  // Generate routes for transportations
-  const routes = transportations.map(transport => ({
-    id: transport.id,
-    from: [transport.from.lat, transport.from.lng] as [number, number],
-    to: [transport.to.lat, transport.to.lng] as [number, number],
-    type: transport.type
-  }));
-
-  if (!mapCenter) {
-    return <div>Loading map...</div>;
-  }
+  }, [locations, center]);
 
   return (
-    <div className={`w-full ${className}`} style={{ height }}>
-      <MapContainer 
-        style={{ height: '100%', width: '100%' }}
-        center={mapCenter}
-        zoom={zoom}
-        scrollWheelZoom={false}
-        className="h-full w-full rounded-md shadow-md"
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-        
-        <MapCenter center={mapCenter} zoom={zoom} />
-        
-        {/* Render markers for each location */}
-        {locations.map(location => (
-          <Marker 
-            key={location.id} 
-            position={[location.lat, location.lng]}
-          >
-            <Popup>
-              <div className="text-sm">
-                <h3 className="font-bold">{location.name}</h3>
-                {location.address && <p>{location.address}</p>}
-                {location.description && <p className="mt-1">{location.description}</p>}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-        
-        {/* Render routes between locations */}
-        {routes.map(route => (
-          <React.Fragment key={route.id}>
-            <Polyline 
-              positions={[route.from, route.to]} 
-              pathOptions={{
-                color: route.type === 'plane' ? '#ea4335' :
-                        route.type === 'train' ? '#4285f4' :
-                        route.type === 'car' ? '#fbbc05' : '#34a853',
-                weight: 3,
-                dashArray: route.type === 'plane' ? '5, 10' : route.type === 'train' ? '1, 5' : ''
-              }}
-            />
-          </React.Fragment>
-        ))}
-      </MapContainer>
-    </div>
+    <MapContainer
+      style={{ height, width: "100%" }}
+      center={mapCenter}
+      zoom={mapZoom}
+      scrollWheelZoom={false}
+      className={className}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      />
+
+      {/* Render markers for each location */}
+      {locations?.map((location: Location, index: number) => (
+        <Marker
+          key={`location-${index}-${location.id || location.name}`}
+          position={[location.lat, location.lng]}
+        >
+          <Popup>
+            <div>
+              <h3 className="font-semibold">{location.name}</h3>
+              {location.address && <p className="text-sm">{location.address}</p>}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+
+      {/* Render transportation routes */}
+      {transportations?.map((transportation: Transportation, index: number) => (
+        <React.Fragment key={`transport-${index}`}>
+          <Polyline
+            positions={[
+              [transportation.from.lat, transportation.from.lng],
+              [transportation.to.lat, transportation.to.lng],
+            ]}
+            color="#3B82F6"
+            weight={3}
+            opacity={0.7}
+            dashArray="5, 10"
+          />
+        </React.Fragment>
+      ))}
+    </MapContainer>
   );
 };
 
-export default ItineraryMap;
+export default Map;
