@@ -108,31 +108,43 @@ async function fetchActivitiesFromAPI(lat, lng, radius) {
       console.log(`Received ${activitiesResponse.data.data.length} activities from Amadeus API`);
       
       // Transform to our activity model
-      return activitiesResponse.data.data.map(item => ({
-        id: item.id,
-        title: item.name,
-        type: mapAmadeusActivityType(item.type),
-        location: {
+      return activitiesResponse.data.data.map(item => {
+        // Create a valid activity object based on our model
+        const formattedActivity = {
           id: item.id,
-          name: item.name,
-          lat: parseFloat(item.geoCode.latitude),
-          lng: parseFloat(item.geoCode.longitude),
-          address: item.address?.lines?.join(', '),
-          description: item.shortDescription
-        },
-        startTime: '09:00',
-        endTime: '11:00',
-        description: item.shortDescription,
-        cost: item.price?.amount,
-        carbonFootprint: 0,
-        weatherSensitive: isWeatherSensitive(item.type)
-      }));
+          title: item.name,
+          type: mapAmadeusActivityType(item.type),
+          location: {
+            id: item.id,
+            name: item.name,
+            lat: parseFloat(item.geoCode.latitude),
+            lng: parseFloat(item.geoCode.longitude),
+            address: item.address?.lines?.join(', ') || ''
+          },
+          startTime: '09:00',
+          endTime: '11:00',
+          description: item.shortDescription || '',
+          cost: item.price?.amount || 0,
+          carbonFootprint: 0,
+          weatherSensitive: isWeatherSensitive(item.type),
+          destinationName: item.destination || 'Unknown'
+        };
+        return formattedActivity;
+      });
     }
     
     console.log('No activities data in response');
     return [];
   } catch (error) {
     console.error('Error in fetchActivitiesFromAPI:', error.response?.data || error.message);
+    
+    // For debugging purposes
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      console.error('Response data:', error.response.data);
+    }
+    
     return [];
   }
 }

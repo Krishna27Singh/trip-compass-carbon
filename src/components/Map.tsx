@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -31,6 +31,17 @@ interface MapProps {
   height?: string;
   className?: string;
 }
+
+// Component to handle center and zoom changes
+const MapController: React.FC<{center: LatLngExpression, zoom: number}> = ({ center, zoom }) => {
+  const map = useMap();
+  
+  useEffect(() => {
+    map.setView(center, zoom);
+  }, [center, zoom, map]);
+  
+  return null;
+};
 
 const Map: React.FC<MapProps> = ({
   locations,
@@ -68,11 +79,15 @@ const Map: React.FC<MapProps> = ({
   return (
     <MapContainer
       style={{ height, width: "100%" }}
-      center={mapCenter as LatLngExpression}
-      zoom={mapZoom}
-      scrollWheelZoom={false}
       className={className}
+      scrollWheelZoom={false}
+      // Use default center and zoom initially
+      center={[51.505, -0.09]} 
+      zoom={12}
     >
+      {/* Use the controller to update center and zoom values */}
+      <MapController center={mapCenter as LatLngExpression} zoom={mapZoom} />
+      
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

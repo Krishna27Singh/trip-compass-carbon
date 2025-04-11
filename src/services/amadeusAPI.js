@@ -6,7 +6,7 @@ const amadeusAPI = {
     try {
       console.log(`Fetching activities for coordinates: lat=${latitude}, lng=${longitude}, radius=${radius}`);
       const response = await fetch(
-        `http://localhost:5000/api/activities?lat=${latitude}&lng=${longitude}&radius=${radius}`
+        `/api/activities?lat=${latitude}&lng=${longitude}&radius=${radius}`
       );
       
       if (!response.ok) {
@@ -29,7 +29,7 @@ const amadeusAPI = {
     try {
       console.log(`Fetching activities for destination: ${destinationName}`);
       const response = await fetch(
-        `http://localhost:5000/api/activities?destination=${encodeURIComponent(destinationName)}`
+        `/api/activities?destination=${encodeURIComponent(destinationName)}`
       );
       
       if (!response.ok) {

@@ -8,13 +8,14 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
-import { MapPin, Clock, DollarSign, Map, Calendar, ListTodo, Settings } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Map, Calendar, ListTodo, Settings, AlertCircle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import DailyItinerary from './DailyItinerary';
 import ItineraryMap from './Map';
 import ItinerarySummary from './ItinerarySummary';
 import TripForm from './TripForm';
 import amadeusAPI from '../services/amadeusAPI';
+import { useToast } from "../hooks/use-toast";
 
 const ItineraryPlanner = () => {
   const [currentItinerary, setCurrentItinerary] = useState(null);
@@ -35,6 +36,8 @@ const ItineraryPlanner = () => {
   const [suggestedActivities, setSuggestedActivities] = useState([]);
   const [isCreatingItinerary, setIsCreatingItinerary] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingError, setLoadingError] = useState(null);
+  const { toast } = useToast();
   
   // Mock function for calculating carbon footprint
   const calculateTotalCarbonFootprint = () => {
@@ -61,6 +64,10 @@ const ItineraryPlanner = () => {
     };
     
     setCurrentItinerary(updatedItinerary);
+    toast({
+      title: "Activity Added",
+      description: `${activity.title} has been added to your itinerary.`,
+    });
   };
   
   // Calculate total carbon footprint whenever the itinerary changes
@@ -73,6 +80,9 @@ const ItineraryPlanner = () => {
   // Fetch activities from real API or fall back to mock data
   const getActivitiesForDestination = async (destination) => {
     setIsLoading(true);
+    setLoadingError(null);
+    setSuggestedActivities([]);
+    
     try {
       console.log('Fetching activities for destination:', destination);
       let activitiesFromAPI = [];
@@ -100,7 +110,8 @@ const ItineraryPlanner = () => {
             location: {
               name: activity.location?.name || "Unknown Location",
               lat: activity.location?.lat || destination.lat,
-              lng: activity.location?.lng || destination.lng
+              lng: activity.location?.lng || destination.lng,
+              address: activity.location?.address || ""
             },
             startTime: activity.startTime || "10:00",
             endTime: activity.endTime || "12:00",
@@ -112,16 +123,23 @@ const ItineraryPlanner = () => {
         });
         
         setIsLoading(false);
+        setSuggestedActivities(formattedActivities);
         return formattedActivities;
       }
       
       // Fallback to mock data if API returns no results
-      console.log('No activities found, using mock data');
-      return getMockActivities();
+      console.log('No activities found from API, using mock data');
+      const mockActivities = getMockActivities(destination);
+      setSuggestedActivities(mockActivities);
+      setIsLoading(false);
+      return mockActivities;
     } catch (error) {
       console.error('Error fetching activities:', error);
+      setLoadingError(`Failed to fetch activities: ${error.message}`);
+      const mockActivities = getMockActivities(destination);
+      setSuggestedActivities(mockActivities);
       setIsLoading(false);
-      return getMockActivities();
+      return mockActivities;
     }
   };
   
@@ -139,34 +157,36 @@ const ItineraryPlanner = () => {
   };
   
   // Mock activities if API fails
-  const getMockActivities = () => {
+  const getMockActivities = (destination) => {
     const mockActivities = [
       {
         id: uuidv4(),
-        title: "Visit Local Museum",
+        title: `Visit ${destination?.name || 'Local'} Museum`,
         type: "museum",
         location: {
-          name: "City Museum",
-          lat: 40.7128,
-          lng: -74.006
+          name: `${destination?.name || 'City'} Museum`,
+          lat: destination?.lat || 40.7128,
+          lng: destination?.lng || -74.006,
+          address: `123 Museum St, ${destination?.name || 'City Center'}`
         },
         startTime: "10:00",
         endTime: "12:00",
-        description: "Explore local history and culture",
+        description: "Explore local history and culture at this fascinating museum.",
         cost: 15
       },
       {
         id: uuidv4(),
-        title: "City Park Walk",
+        title: `${destination?.name || 'City'} Park Walk`,
         type: "outdoors",
         location: {
-          name: "Central Park",
-          lat: 40.7812,
-          lng: -73.9665
+          name: `${destination?.name || 'Central'} Park`,
+          lat: destination?.lat ? destination.lat + 0.01 : 40.7812,
+          lng: destination?.lng ? destination.lng + 0.01 : -73.9665,
+          address: `Park Avenue, ${destination?.name || 'City Center'}`
         },
         startTime: "14:00",
         endTime: "16:00",
-        description: "Enjoy nature in the heart of the city",
+        description: "Enjoy the beautiful scenery and fresh air in this urban oasis.",
         cost: 0
       },
       {
@@ -174,18 +194,18 @@ const ItineraryPlanner = () => {
         title: "Local Cuisine Dinner",
         type: "dining",
         location: {
-          name: "Traditional Restaurant",
-          lat: 40.7234,
-          lng: -73.9878
+          name: `${destination?.name || 'Traditional'} Restaurant`,
+          lat: destination?.lat ? destination.lat - 0.01 : 40.7234,
+          lng: destination?.lng ? destination.lng - 0.01 : -73.9878,
+          address: `456 Food St, ${destination?.name || 'Downtown'}`
         },
         startTime: "19:00",
         endTime: "21:00",
-        description: "Experience authentic local flavors",
+        description: "Experience authentic local flavors and culinary traditions.",
         cost: 35
       }
     ];
     
-    setIsLoading(false);
     return mockActivities;
   };
   
@@ -197,10 +217,9 @@ const ItineraryPlanner = () => {
           console.log('Fetching suggested activities for:', currentItinerary.destination);
           const activities = await getActivitiesForDestination(currentItinerary.destination);
           console.log('Setting suggested activities:', activities);
-          setSuggestedActivities(activities);
         } catch (error) {
-          console.error('Error fetching suggested activities:', error);
-          setSuggestedActivities([]);
+          console.error('Error in fetchSuggestedActivities:', error);
+          setLoadingError(`Failed to load activities: ${error.message}`);
         }
       }
     };
@@ -507,7 +526,34 @@ const ItineraryPlanner = () => {
               </div>
             </div>
             
-            {suggestedActivities.length > 0 && (
+            {/* Show error message if there was a problem loading activities */}
+            {loadingError && (
+              <div className="rounded-md bg-red-50 p-4 mt-2">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-red-400" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Error loading activities</h3>
+                    <div className="mt-2 text-sm text-red-700">
+                      <p>{loadingError}</p>
+                      <p className="mt-1">Using fallback activity suggestions instead.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Loading indicator */}
+            {isLoading && (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                <p className="text-sm text-muted-foreground mt-2">Loading suggested activities...</p>
+              </div>
+            )}
+            
+            {/* Suggested activities section */}
+            {!isLoading && suggestedActivities.length > 0 && (
               <div>
                 <h3 className="text-sm font-medium mb-2">Suggested Activities:</h3>
                 <div className="max-h-48 overflow-y-auto border rounded-md">
@@ -519,14 +565,14 @@ const ItineraryPlanner = () => {
                     >
                       <div className="font-medium">{activity.title}</div>
                       <div className="text-xs text-muted-foreground flex items-center gap-2 mt-1">
-                        <span>{activity.type}</span>
+                        <span className="capitalize">{activity.type}</span>
                         {activity.cost > 0 ? (
                           <span className="flex items-center">
                             <DollarSign className="h-3 w-3 mr-1" />
-                            {activity.cost} {activity.currencyCode}
+                            {activity.cost} {activity.currencyCode || "USD"}
                           </span>
                         ) : (
-                          <span className="text-muted-foreground">Price currently not available</span>
+                          <span className="text-muted-foreground">Price not available</span>
                         )}
                       </div>
                       {activity.description ? (
@@ -536,6 +582,12 @@ const ItineraryPlanner = () => {
                       ) : (
                         <div className="text-xs mt-1 italic text-muted-foreground">
                           No description available
+                        </div>
+                      )}
+                      {activity.location?.address && (
+                        <div className="text-xs mt-1 text-muted-foreground flex items-center">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {activity.location.address}
                         </div>
                       )}
                       {activity.pictures && activity.pictures.length > 0 && (
@@ -554,6 +606,16 @@ const ItineraryPlanner = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+            
+            {/* No activities found message */}
+            {!isLoading && suggestedActivities.length === 0 && !loadingError && (
+              <div className="text-center py-4 border rounded-md">
+                <p className="text-muted-foreground">No suggested activities found.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Try entering activity details manually or check your connection.
+                </p>
               </div>
             )}
           </div>
